@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HITAnalysis - 门诊运营日报</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;510;590;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-marketing: #08090a;
+      --bg-panel: #0f1011;
+      --bg-surface: #191a1b;
+      --bg-elevated: #28282c;
+      --bg-input: rgba(255,255,255,0.02);
+      
+      --text-primary: #f7f8f8;
+      --text-secondary: #d0d6e0;
+      --text-tertiary: #8a8f98;
+      --text-muted: #62666d;
+      
+      --brand-primary: #3B82F6;
+      --brand-hover: #2563EB;
+      --brand-light: #60A5FA;
+      --brand-subtle: rgba(59,130,246,0.15);
+      
+      --success: #10B981;
+      --warning: #F59E0B;
+      --error: #EF4444;
+      
+      --border-subtle: rgba(255,255,255,0.05);
+      --border-standard: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.12);
+      
+      --chart-1: #3B82F6;
+      --chart-2: #10B981;
+      --chart-3: #F59E0B;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-weight: 400;
+      background: var(--bg-marketing);
+      color: var(--text-secondary);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    
+    /* Layout */
+    .app-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      grid-template-rows: 56px 1fr;
+      min-height: 100vh;
+    }
+    
+    /* Top Bar */
+    .top-bar {
+      grid-column: 1 / -1;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+    }
+    
+    .top-bar-left { display: flex; align-items: center; gap: 24px; }
+    
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-icon svg { width: 18px; height: 18px; color: white; }
+    .logo-text { font-size: 16px; font-weight: 590; color: var(--text-primary); }
+    
+    .nav-tabs { display: flex; gap: 8px; }
+    .nav-tab {
+      padding: 8px 16px; font-size: 13px; font-weight: 510;
+      color: var(--text-tertiary); border-radius: 6px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-tab:hover { color: var(--text-secondary); background: var(--bg-input); }
+    .nav-tab.active { color: var(--brand-primary); background: var(--brand-subtle); }
+    
+    .top-bar-right { display: flex; align-items: center; gap: 16px; }
+    .org-selector {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 12px; background: var(--bg-input);
+      border: 1px solid var(--border-subtle); border-radius: 6px;
+      font-size: 13px; color: var(--text-secondary); cursor: pointer;
+    }
+    .user-avatar {
+      width: 32px; height: 32px; background: var(--brand-subtle);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 510; color: var(--brand-primary);
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-subtle);
+      padding: 16px; overflow-y: auto;
+    }
+    
+    .sidebar-title {
+      font-size: 12px; font-weight: 510; color: var(--text-muted);
+      margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+    }
+    
+    .folder-tree { display: flex; flex-direction: column; gap: 4px; }
+    .folder-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; font-size: 13px;
+      color: var(--text-tertiary); border-radius: 6px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .folder-item:hover { background: var(--bg-input); color: var(--text-secondary); }
+    .folder-item.active { background: var(--brand-subtle); color: var(--brand-primary); }
+    .folder-icon { font-size: 14px; }
+    .report-item { padding-left: 28px; font-size: 12px; }
+    
+    /* Main Content */
+    .main-content {
+      background: var(--bg-marketing);
+      padding: 24px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 24px;
+    }
+    
+    /* Report Header */
+    .report-header {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    
+    .report-title {
+      font-size: 24px; font-weight: 510; color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+    
+    .report-meta {
+      font-size: 13px; color: var(--text-tertiary);
+      margin-top: 8px;
+    }
+    
+    .export-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px; background: var(--bg-input);
+      border: 1px solid var(--border-standard); border-radius: 6px;
+      font-size: 12px; font-weight: 510; color: var(--text-secondary);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .export-btn:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+    
+    /* KPI Cards */
+    .kpi-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    
+    .kpi-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-standard);
+      border-radius: 12px; padding: 20px;
+    }
+    
+    .kpi-label {
+      font-size: 12px; font-weight: 510; color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    
+    .kpi-value {
+      font-size: 32px; font-weight: 590; color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .kpi-change {
+      font-size: 14px; font-weight: 510;
+      margin-top: 8px; display: flex; align-items: center; gap: 6px;
+    }
+    
+    .kpi-change.positive { color: var(--error); }
+    .kpi-change.negative { color: var(--success); }
+    
+    /* Chart Section */
+    .chart-section {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-standard);
+      border-radius: 12px; padding: 20px;
+    }
+    
+    .chart-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .time-filter {
+      display: flex; gap: 8px;
+    }
+    
+    .time-btn {
+      padding: 6px 12px; font-size: 12px; font-weight: 510;
+      color: var(--text-tertiary); background: var(--bg-input);
+      border: 1px solid var(--border-subtle); border-radius: 6px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .time-btn:hover { background: var(--bg-surface); color: var(--text-secondary); }
+    .time-btn.active { background: var(--brand-subtle); color: var(--brand-primary); border-color: rgba(59,130,246,0.3); }
+    
+    /* Chart Visualization */
+    .chart-container {
+      position: relative; height: 280px;
+      background: var(--bg-input); border-radius: 8px;
+      padding: 24px; margin-bottom: 16px;
+    }
+    
+    .chart-title {
+      font-size: 14px; font-weight: 510; color: var(--text-secondary);
+      margin-bottom: 24px; position: absolute; top: 24px; left: 24px;
+    }
+    
+    .chart-area {
+      display: flex; flex-direction: column; height: 100%;
+      padding-top: 40px;
+    }
+    
+    /* Simulated Chart */
+    .chart-bars {
+      display: flex; justify-content: space-around; align-items: flex-end;
+      height: 180px; gap: 16px;
+    }
+    
+    .bar-group { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .bar {
+      width: 40px; background: var(--chart-1); border-radius: 4px 4px 0 0;
+      transition: all 0.3s;
+    }
+    .bar:hover { background: var(--brand-light); }
+    .bar-label { font-size: 11px; color: var(--text-muted); }
+    
+    .target-line {
+      position: absolute; top: 80px; right: 24px;
+      font-size: 11px; color: var(--error); font-weight: 510;
+      display: flex; align-items: center; gap: 4px;
+    }
+    
+    .chart-axis {
+      display: flex; justify-content: space-between;
+      margin-top: 16px; padding: 0 24px;
+      font-size: 11px; color: var(--text-muted);
+    }
+    
+    /* Drilldown Controls */
+    .drilldown-controls {
+      display: flex; gap: 12px; margin-top: 16px;
+    }
+    
+    .drilldown-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 12px; font-size: 12px;
+      color: var(--text-tertiary); background: var(--bg-input);
+      border: 1px solid var(--border-subtle); border-radius: 6px;
+      cursor: pointer;
+    }
+    
+    .breadcrumb {
+      margin-top: 12px; font-size: 12px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .breadcrumb-item { color: var(--text-tertiary); }
+    .breadcrumb-item.active { color: var(--brand-primary); }
+    
+    /* Data Table */
+    .data-section {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-standard);
+      border-radius: 12px; padding: 20px;
+    }
+    
+    .section-title {
+      font-size: 14px; font-weight: 510; color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    
+    .data-table {
+      background: var(--bg-input);
+      border: 1px solid var(--border-standard);
+      border-radius: 8px; overflow: hidden;
+    }
+    
+    .data-table table { width: 100%; border-collapse: collapse; }
+    
+    .data-table th {
+      background: rgba(255,255,255,0.03);
+      padding: 12px 16px; font-size: 13px; font-weight: 510;
+      color: var(--text-tertiary); text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .data-table td {
+      padding: 12px 16px; font-size: 14px; color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+    
+    .table-value { font-family: 'JetBrains Mono', monospace; }
+    .table-positive { color: var(--error); }
+    .table-negative { color: var(--success); }
+    
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; font-size: 11px; font-weight: 510;
+      border-radius: 9999px;
+    }
+    .status-badge.success { background: rgba(16,185,129,0.15); color: var(--success); }
+    .status-badge.warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-3 3"/>
+            </svg>
+          </div>
+          <span class="logo-text">HITAnalysis</span>
+        </div>
+        <nav class="nav-tabs">
+          <div class="nav-tab">AI 洞察中心</div>
+          <div class="nav-tab active">标准报表中心</div>
+          <div class="nav-tab">元数据管理</div>
+          <div class="nav-tab">权限管理</div>
+        </nav>
+      </div>
+      <div class="top-bar-right">
+        <div class="org-selector">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/>
+          </svg>
+          XX医院
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </div>
+        <div class="user-avatar">张</div>
+      </div>
+    </header>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-title">📂 运营决策分析</div>
+      <div class="folder-tree">
+        <div class="folder-item active">日报分析</div>
+        <div class="folder-item report-item">门诊运营日报</div>
+        <div class="folder-item report-item">住院运营日报</div>
+        <div class="folder-item">住院运营分析</div>
+        <div class="folder-item">门诊运营分析</div>
+      </div>
+      <div class="sidebar-title" style="margin-top: 24px;">📂 质量指标分析</div>
+      <div class="folder-tree">
+        <div class="folder-item">医疗质量监控</div>
+        <div class="folder-item">药品使用分析</div>
+      </div>
+      <div class="sidebar-title" style="margin-top: 24px;">📂 绩效考核分析</div>
+      <div class="folder-tree">
+        <div class="folder-item">科室绩效考核</div>
+        <div class="folder-item">医生个人绩效</div>
+      </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Report Header -->
+      <div class="report-header">
+        <div>
+          <h1 class="report-title">门诊运营日报</h1>
+          <div class="report-meta">📅 2026-05-06  |  XX医院</div>
+        </div>
+        <div class="export-btn">
+          导出
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </div>
+      </div>
+      
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">门诊人次</div>
+          <div class="kpi-value">1,234</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">同比</div>
+          <div class="kpi-value">+5.2%</div>
+          <div class="kpi-change positive">🔴 较去年同期上升</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">环比</div>
+          <div class="kpi-value">+2.1%</div>
+          <div class="kpi-change negative">🟢 较上月上升</div>
+        </div>
+      </div>
+      
+      <!-- Chart Section -->
+      <div class="chart-section">
+        <div class="chart-header">
+          <div class="time-filter">
+            <button class="time-btn">近7天</button>
+            <button class="time-btn active">近30天</button>
+            <button class="time-btn">本月</button>
+            <button class="time-btn">本季度</button>
+            <button class="time-btn">自定义 ▼</button>
+          </div>
+        </div>
+        
+        <div class="chart-container">
+          <div class="chart-title">📊 门诊量趋势图</div>
+          <div class="target-line">
+            <span style="display: inline-block; width: 24px; border-top: 2px dashed var(--error);"></span>
+            目标线
+          </div>
+          <div class="chart-bars">
+            <div class="bar-group">
+              <div class="bar" style="height: 120px;"></div>
+              <div class="bar-label">5.1</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar" style="height: 140px;"></div>
+              <div class="bar-label">5.2</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar" style="height: 100px;"></div>
+              <div class="bar-label">5.3</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar" style="height: 160px;"></div>
+              <div class="bar-label">5.4</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar" style="height: 130px;"></div>
+              <div class="bar-label">5.5</div>
+            </div>
+            <div class="bar-group">
+              <div class="bar" style="height: 150px;"></div>
+              <div class="bar-label">5.6</div>
+            </div>
+          </div>
+          <div class="chart-axis">
+            <span>0</span>
+            <span>1,000</span>
+            <span>2,000</span>
+            <span>3,000</span>
+            <span>4,000</span>
+          </div>
+        </div>
+        
+        <div class="drilldown-controls">
+          <div class="drilldown-btn">
+            🔍 下钻: 按科室 ▼
+          </div>
+          <div class="drilldown-btn">
+            🔍 下钻: 按医生 ▼
+          </div>
+        </div>
+        
+        <div class="breadcrumb">
+          <span class="breadcrumb-item">全院</span>
+          <span>›</span>
+          <span class="breadcrumb-item">XX院区</span>
+          <span>›</span>
+          <span class="breadcrumb-item active">...</span>
+        </div>
+      </div>
+      
+      <!-- Data Table Section -->
+      <div class="data-section">
+        <div class="section-title">📋 数据明细</div>
+        <div class="data-table">
+          <table>
+            <thead>
+              <tr>
+                <th>科室</th>
+                <th>门诊人次</th>
+                <th>目标值</th>
+                <th>同比</th>
+                <th>环比</th>
+                <th>状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>心内科</td>
+                <td class="table-value">345</td>
+                <td class="table-value">300</td>
+                <td class="table-value table-positive">+8%</td>
+                <td class="table-value table-positive">+3%</td>
+                <td><span class="status-badge warning">🟡 接近上限</span></td>
+              </tr>
+              <tr>
+                <td>呼吸科</td>
+                <td class="table-value">289</td>
+                <td class="table-value">250</td>
+                <td class="table-value table-positive">+5%</td>
+                <td class="table-value table-positive">+1%</td>
+                <td><span class="status-badge success">🟢 正常</span></td>
+              </tr>
+              <tr>
+                <td>骨科</td>
+                <td class="table-value">267</td>
+                <td class="table-value">260</td>
+                <td class="table-value table-negative">-2%</td>
+                <td class="table-value table-negative">-3%</td>
+                <td><span class="status-badge success">🟢 正常</span></td>
+              </tr>
+              <tr>
+                <td>神经内科</td>
+                <td class="table-value">198</td>
+                <td class="table-value">200</td>
+                <td class="table-value table-negative">-1%</td>
+                <td class="table-value table-negative">-2%</td>
+                <td><span class="status-badge success">🟢 正常</span></td>
+              </tr>
+              <tr>
+                <td>消化内科</td>
+                <td class="table-value">156</td>
+                <td class="table-value">150</td>
+                <td class="table-value table-positive">+4%</td>
+                <td class="table-value table-positive">+2%</td>
+                <td><span class="status-badge success">🟢 正常</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
