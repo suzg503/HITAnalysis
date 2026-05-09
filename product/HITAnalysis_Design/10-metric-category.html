@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HITAnalysis - 指标分类管理</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;510;590;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-marketing: #08090a;
+      --bg-panel: #0f1011;
+      --bg-surface: #191a1b;
+      --bg-elevated: #28282c;
+      --bg-input: rgba(255,255,255,0.02);
+      
+      --text-primary: #f7f8f8;
+      --text-secondary: #d0d6e0;
+      --text-tertiary: #8a8f98;
+      --text-muted: #62666d;
+      
+      --brand-primary: #3B82F6;
+      --brand-hover: #2563EB;
+      --brand-subtle: rgba(59,130,246,0.15);
+      
+      --success: #10B981;
+      --warning: #F59E0B;
+      --error: #EF4444;
+      
+      --border-subtle: rgba(255,255,255,0.05);
+      --border-standard: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.12);
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-marketing);
+      color: var(--text-secondary);
+      min-height: 100vh;
+      display: flex;
+    }
+    
+    /* Tree Panel */
+    .tree-panel {
+      width: 320px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-standard);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .tree-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .tree-title {
+      font-size: 14px;
+      font-weight: 510;
+      color: var(--text-primary);
+    }
+    
+    .tree-add-btn {
+      padding: 6px 12px;
+      background: var(--brand-subtle);
+      border: 1px solid rgba(59,130,246,0.3);
+      border-radius: 6px;
+      color: var(--brand-primary);
+      font-size: 12px;
+      font-weight: 510;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .tree-add-btn:hover {
+      background: rgba(59,130,246,0.2);
+    }
+    
+    .tree-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    
+    .tree-node {
+      margin-bottom: 8px;
+    }
+    
+    .tree-node-header {
+      padding: 10px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-tertiary);
+      transition: all 0.15s;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+    }
+    
+    .tree-node-header:hover {
+      background: rgba(255,255,255,0.04);
+      color: var(--text-secondary);
+      border-color: var(--border-standard);
+    }
+    
+    .tree-node-header.active {
+      background: var(--brand-subtle);
+      color: var(--brand-primary);
+      border-color: rgba(59,130,246,0.3);
+    }
+    
+    .tree-expand-icon {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s;
+    }
+    
+    .tree-expand-icon.expanded {
+      transform: rotate(90deg);
+    }
+    
+    .tree-folder-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--brand-primary);
+    }
+    
+    .tree-node-name {
+      font-size: 13px;
+      font-weight: 510;
+    }
+    
+    .tree-node-code {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .tree-node-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .tree-node-header:hover .tree-node-actions {
+      opacity: 1;
+    }
+    
+    .tree-action-btn {
+      padding: 4px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .tree-action-btn:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .tree-action-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+    
+    .tree-children {
+      padding-left: 24px;
+      margin-top: 4px;
+    }
+    
+    .tree-child-node {
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-tertiary);
+      margin-bottom: 2px;
+      transition: all 0.15s;
+    }
+    
+    .tree-child-node:hover {
+      background: rgba(255,255,255,0.04);
+      color: var(--text-secondary);
+    }
+    
+    .tree-child-node.active {
+      background: var(--brand-subtle);
+      color: var(--brand-primary);
+    }
+    
+    .tree-child-icon {
+      width: 14px;
+      height: 14px;
+    }
+    
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .topbar {
+      height: 56px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-standard);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 510;
+      color: var(--text-primary);
+    }
+    
+    .content-area {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    
+    /* Detail Card */
+    .detail-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-standard);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+    
+    .detail-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .detail-card-title {
+      font-size: 18px;
+      font-weight: 590;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .detail-card-title-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--brand-subtle);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .detail-card-title-icon svg {
+      width: 18px;
+      height: 18px;
+      color: var(--brand-primary);
+    }
+    
+    .detail-card-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 510;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    
+    .btn-secondary {
+      background: var(--bg-input);
+      border: 1px solid var(--border-standard);
+      color: var(--text-secondary);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.04);
+      color: var(--text-primary);
+    }
+    
+    .btn-danger {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: var(--error);
+    }
+    
+    .btn-danger:hover {
+      background: rgba(239,68,68,0.15);
+    }
+    
+    .btn svg {
+      width: 14px;
+      height: 14px;
+    }
+    
+    /* Detail Form */
+    .detail-form {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+    
+    .form-label {
+      font-size: 12px;
+      font-weight: 510;
+      color: var(--text-tertiary);
+    }
+    
+    .form-value {
+      font-size: 14px;
+      color: var(--text-primary);
+      padding: 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+    }
+    
+    .form-value.mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Children Table */
+    .children-section {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-standard);
+      border-radius: 8px;
+    }
+    
+    .children-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .children-title {
+      font-size: 14px;
+      font-weight: 510;
+      color: var(--text-primary);
+    }
+    
+    .children-count {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--bg-elevated);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .table th {
+      background: rgba(255,255,255,0.03);
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 510;
+      color: var(--text-tertiary);
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .table td {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .table tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+    
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .action-btn {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .action-btn:hover {
+      background: var(--bg-input);
+      color: var(--text-secondary);
+    }
+    
+    .action-btn-edit:hover {
+      color: var(--brand-primary);
+    }
+    
+    .action-btn-delete:hover {
+      color: var(--error);
+    }
+    
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    
+    .pagination-info {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    
+    .pagination-pages {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .page-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text-tertiary);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .page-btn:hover {
+      background: var(--bg-input);
+      color: var(--text-secondary);
+    }
+    
+    .page-btn.active {
+      background: var(--brand-subtle);
+      color: var(--brand-primary);
+    }
+    
+    /* Demo Badge */
+    .demo-badge {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      padding: 6px 12px;
+      background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 6px;
+      font-size: 11px;
+      color: #8B5CF6;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-badge">🆕 HLD v2.0 新增模块 - 指标分类管理</div>
+  
+  <!-- Tree Panel -->
+  <div class="tree-panel">
+    <div class="tree-header">
+      <div class="tree-title">📂 指标分类树</div>
+      <button class="tree-add-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        新建分类
+      </button>
+    </div>
+    <div class="tree-content">
+      <!-- Level 1 -->
+      <div class="tree-node">
+        <div class="tree-node-header active">
+          <svg class="tree-expand-icon expanded" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          <svg class="tree-folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="tree-node-name">基础指标</span>
+          <span class="tree-node-code">BASE_INDEX</span>
+          <div class="tree-node-actions">
+            <div class="tree-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </div>
+            <div class="tree-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tree-node">
+        <div class="tree-node-header">
+          <svg class="tree-expand-icon expanded" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          <svg class="tree-folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="tree-node-name">业务指标</span>
+          <span class="tree-node-code">BUSINESS_INDEX</span>
+          <div class="tree-node-actions">
+            <div class="tree-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </div>
+            <div class="tree-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="tree-children">
+          <div class="tree-child-node active">
+            <svg class="tree-child-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+            <span>门诊指标</span>
+          </div>
+          <div class="tree-child-node">
+            <svg class="tree-child-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+            <span>住院指标</span>
+          </div>
+          <div class="tree-child-node">
+            <svg class="tree-child-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+            <span>药品指标</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tree-node">
+        <div class="tree-node-header">
+          <svg class="tree-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          <svg class="tree-folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="tree-node-name">衍生指标</span>
+          <span class="tree-node-code">DERIVED_INDEX</span>
+          <div class="tree-node-actions">
+            <div class="tree-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </div>
+            <div class="tree-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tree-node">
+        <div class="tree-node-header">
+          <svg class="tree-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          <svg class="tree-folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="tree-node-name">技术指标</span>
+          <span class="tree-node-code">TECH_INDEX</span>
+          <div class="tree-node-actions">
+            <div class="tree-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </div>
+            <div class="tree-action-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title">📊 指标分类管理</div>
+    </div>
+    
+    <div class="content-area">
+      <!-- Detail Card -->
+      <div class="detail-card">
+        <div class="detail-card-header">
+          <div class="detail-card-title">
+            <div class="detail-card-title-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+              </svg>
+            </div>
+            门诊指标
+          </div>
+          <div class="detail-card-actions">
+            <button class="btn btn-secondary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              编辑
+            </button>
+            <button class="btn btn-danger">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              删除
+            </button>
+          </div>
+        </div>
+        
+        <div class="detail-form">
+          <div class="form-group">
+            <label class="form-label">分类名称</label>
+            <div class="form-value">门诊指标</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">分类编码</label>
+            <div class="form-value mono">MZ_INDEX</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">父级分类</label>
+            <div class="form-value">业务指标 (BUSINESS_INDEX)</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">排序号</label>
+            <div class="form-value mono">1</div>
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label">分类描述</label>
+            <div class="form-value">门诊业务相关指标，包括门诊人次、门诊收入、门诊费用、门诊药占比等核心运营指标。</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">创建时间</label>
+            <div class="form-value mono">2026-05-01 10:30:00</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">更新时间</label>
+            <div class="form-value mono">2026-05-08 14:20:00</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Children Table -->
+      <div class="children-section">
+        <div class="children-header">
+          <div class="children-title">📋 该分类下指标列表</div>
+          <div class="children-count">24 个指标</div>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>序号</th>
+              <th>指标名称</th>
+              <th>指标编码</th>
+              <th>指标类型</th>
+              <th>计量单位</th>
+              <th>状态</th>
+              <th>创建时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>门诊人次</td>
+              <td class="mono">MZ_RS</td>
+              <td>原子指标</td>
+              <td>人次</td>
+              <td><span style="color: var(--success)">已发布</span></td>
+              <td>2026-05-01</td>
+              <td>
+                <span class="action-btn action-btn-edit">查看</span>
+              </td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>门诊收入</td>
+              <td class="mono">MZ_SR</td>
+              <td>原子指标</td>
+              <td>元</td>
+              <td><span style="color: var(--success)">已发布</span></td>
+              <td>2026-05-02</td>
+              <td>
+                <span class="action-btn action-btn-edit">查看</span>
+              </td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>门诊均次费用</td>
+              <td class="mono">MZ_JCFY</td>
+              <td>衍生指标</td>
+              <td>元/人次</td>
+              <td><span style="color: var(--success)">已发布</span></td>
+              <td>2026-05-03</td>
+              <td>
+                <span class="action-btn action-btn-edit">查看</span>
+              </td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>门诊药占比</td>
+              <td class="mono">MZ_YZB</td>
+              <td>衍生指标</td>
+              <td>%</td>
+              <td><span style="color: var(--success)">已发布</span></td>
+              <td>2026-05-04</td>
+              <td>
+                <span class="action-btn action-btn-edit">查看</span>
+              </td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>门诊收入月度汇总</td>
+              <td class="mono">MZ_SR_MONTH</td>
+              <td>衍生指标</td>
+              <td>元</td>
+              <td><span style="color: var(--warning)">草稿</span></td>
+              <td>2026-05-08</td>
+              <td>
+                <span class="action-btn action-btn-edit">查看</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <div class="pagination-info">共 24 条指标</div>
+          <div class="pagination-pages">
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">...</button>
+            <button class="page-btn">5</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HITAnalysis - AI操作日志</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;510;590;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-marketing: #08090a;
+      --bg-panel: #0f1011;
+      --bg-surface: #191a1b;
+      --bg-elevated: #28282c;
+      --bg-input: rgba(255,255,255,0.02);
+      
+      --text-primary: #f7f8f8;
+      --text-secondary: #d0d6e0;
+      --text-tertiary: #8a8f98;
+      --text-muted: #62666d;
+      
+      --brand-primary: #3B82F6;
+      --brand-hover: #2563EB;
+      --brand-subtle: rgba(59,130,246,0.15);
+      
+      --success: #10B981;
+      --success-subtle: rgba(16,185,129,0.15);
+      --warning: #F59E0B;
+      --warning-subtle: rgba(245,158,11,0.15);
+      --error: #EF4444;
+      --error-subtle: rgba(239,68,68,0.15);
+      
+      --border-subtle: rgba(255,255,255,0.05);
+      --border-standard: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.12);
+      
+      --ai-gradient-start: #3B82F6;
+      --ai-gradient-end: #8B5CF6;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-marketing);
+      color: var(--text-secondary);
+      min-height: 100vh;
+      display: flex;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-standard);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--ai-gradient-start), var(--ai-gradient-end));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .logo-icon svg { width: 18px; height: 18px; color: white; }
+    
+    .logo-text { font-size: 16px; font-weight: 510; color: var(--text-primary); }
+    
+    .nav-section { margin-bottom: 24px; }
+    
+    .nav-section-title {
+      font-size: 11px;
+      font-weight: 510;
+      color: var(--text-muted);
+      padding: 8px 12px;
+      letter-spacing: 0.05em;
+    }
+    
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .nav-item:hover { background: var(--bg-input); color: var(--text-secondary); }
+    
+    .nav-item.active {
+      background: var(--brand-subtle);
+      color: var(--brand-primary);
+    }
+    
+    .nav-item svg { width: 16px; height: 16px; }
+    .nav-item-text { font-size: 13px; }
+    
+    .nav-item-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: var(--bg-elevated);
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+    
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Top Bar */
+    .topbar {
+      height: 56px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-standard);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 510;
+      color: var(--text-primary);
+    }
+    
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 510;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-secondary {
+      background: var(--bg-input);
+      border: 1px solid var(--border-standard);
+      color: var(--text-secondary);
+    }
+    
+    .btn-secondary:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+    
+    .btn-primary {
+      background: var(--brand-primary);
+      border: none;
+      color: white;
+    }
+    
+    .btn-primary:hover { background: var(--brand-hover); }
+    
+    .btn svg { width: 14px; height: 14px; }
+    
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    
+    /* Filter Section */
+    .filter-section {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-standard);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .filter-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    .filter-select {
+      padding: 8px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-standard);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 13px;
+      min-width: 140px;
+      cursor: pointer;
+    }
+    
+    .filter-select:focus { outline: none; border-color: var(--brand-primary); }
+    
+    .filter-input {
+      padding: 8px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-standard);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 13px;
+      min-width: 200px;
+    }
+    
+    .filter-input:focus { outline: none; border-color: var(--brand-primary); }
+    
+    .filter-input::placeholder { color: var(--text-muted); }
+    
+    /* Statistics Cards */
+    .stats-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .stat-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-standard);
+      border-radius: 8px;
+      padding: 16px;
+      flex: 1;
+    }
+    
+    .stat-card-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    
+    .stat-card-value {
+      font-size: 24px;
+      font-weight: 590;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .stat-card-change {
+      font-size: 12px;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .stat-card-change.positive { color: var(--success); }
+    .stat-card-change.negative { color: var(--error); }
+    
+    /* Table */
+    .table-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-standard);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .table th {
+      background: rgba(255,255,255,0.03);
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 510;
+      color: var(--text-tertiary);
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .table td {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .table tr:hover td { background: rgba(255,255,255,0.02); }
+    
+    .table tr.expanded td { background: rgba(255,255,255,0.03); }
+    
+    /* Status Badge */
+    .badge {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 510;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .badge-success {
+      background: var(--success-subtle);
+      color: var(--success);
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+    
+    .badge-error {
+      background: var(--error-subtle);
+      color: var(--error);
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+    
+    .badge-warning {
+      background: var(--warning-subtle);
+      color: var(--warning);
+      border: 1px solid rgba(245,158,11,0.3);
+    }
+    
+    .badge-info {
+      background: var(--brand-subtle);
+      color: var(--brand-primary);
+      border: 1px solid rgba(59,130,246,0.3);
+    }
+    
+    /* Operation Type Badge */
+    .op-type {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-standard);
+    }
+    
+    /* Flow Detail Panel */
+    .flow-detail {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 16px;
+      margin: 8px 16px 16px 16px;
+    }
+    
+    .flow-detail-header {
+      font-size: 13px;
+      font-weight: 510;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .flow-step {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 12px;
+    }
+    
+    .flow-step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    
+    .flow-step-name {
+      font-size: 12px;
+      font-weight: 510;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .flow-step-status {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    
+    .flow-step-content {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(0,0,0,0.2);
+      padding: 8px;
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+    
+    .flow-step-duration {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    
+    .pagination-info {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    
+    .pagination-pages {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .page-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text-tertiary);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .page-btn:hover { background: var(--bg-input); color: var(--text-secondary); }
+    
+    .page-btn.active { background: var(--brand-subtle); color: var(--brand-primary); }
+    
+    /* Link */
+    .link {
+      color: var(--brand-primary);
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .link:hover { color: var(--brand-hover); }
+    
+    /* Mono text */
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    
+    /* Demo annotation */
+    .demo-badge {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      padding: 6px 12px;
+      background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 6px;
+      font-size: 11px;
+      color: #8B5CF6;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-badge">🆕 HLD v2.0 新增模块 - AI操作日志审计</div>
+  
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <span class="logo-text">HITAnalysis</span>
+    </div>
+    
+    <div class="nav-section">
+      <div class="nav-section-title">系统管理</div>
+      <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m7.07 7.07l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m7.07-7.07l4.24-4.24"/></svg><span class="nav-item-text">权限管理</span></div>
+      <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span class="nav-item-text">AI操作日志</span><span class="nav-item-badge">新增</span></div>
+      <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="nav-item-text">预警配置</span></div>
+      <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="15" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><span class="nav-item-text">系统日志</span></div>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="topbar-title">AI操作日志</div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          导出Excel
+        </button>
+        <button class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          高级搜索
+        </button>
+      </div>
+    </div>
+    
+    <!-- Content Area -->
+    <div class="content-area">
+      <!-- Statistics -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-card-title">今日AI操作总数</div>
+          <div class="stat-card-value">1,247</div>
+          <div class="stat-card-change positive">↑ 12.5% vs 昨日</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">成功率</div>
+          <div class="stat-card-value">98.6%</div>
+          <div class="stat-card-change positive">↑ 0.3%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">平均耗时</div>
+          <div class="stat-card-value">850ms</div>
+          <div class="stat-card-change negative">↓ 50ms</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">失败数</div>
+          <div class="stat-card-value">17</div>
+          <div class="stat-card-change negative">↑ 5</div>
+        </div>
+      </div>
+      
+      <!-- Filters -->
+      <div class="filter-section">
+        <div class="filter-group">
+          <label class="filter-label">操作类型</label>
+          <select class="filter-select">
+            <option>全部</option>
+            <option>AI问答</option>
+            <option>AI报告生成</option>
+            <option>AI预警</option>
+            <option>AI指标创建</option>
+            <option>AI推荐</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">执行状态</label>
+          <select class="filter-select">
+            <option>全部</option>
+            <option>成功</option>
+            <option>失败</option>
+            <option>超时</option>
+            <option>无数据</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">AI模型</label>
+          <select class="filter-select">
+            <option>全部</option>
+            <option>Qwen2.5-7B</option>
+            <option>GPT-4</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">用户</label>
+          <input class="filter-input" placeholder="输入用户名或ID">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">时间范围</label>
+          <select class="filter-select">
+            <option>今日</option>
+            <option>近7天</option>
+            <option>近30天</option>
+            <option>自定义</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Table -->
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>日志ID</th>
+              <th>用户</th>
+              <th>操作类型</th>
+              <th>输入摘要</th>
+              <th>流程ID</th>
+              <th>状态</th>
+              <th>耗时</th>
+              <th>时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">LOG-1247</td>
+              <td>张医生</td>
+              <td><span class="op-type">AI问答</span></td>
+              <td>"本月门诊人次"</td>
+              <td class="mono">FLOW-2847</td>
+              <td><span class="badge badge-success">成功</span></td>
+              <td class="mono">650ms</td>
+              <td>2026-05-08 14:32</td>
+              <td><span class="link">查看详情</span></td>
+            </tr>
+            <tr class="expanded">
+              <td class="mono">LOG-1246</td>
+              <td>李主任</td>
+              <td><span class="op-type">AI指标创建</span></td>
+              <td>"创建门诊收入月度汇总指标"</td>
+              <td class="mono">FLOW-2846</td>
+              <td><span class="badge badge-success">成功</span></td>
+              <td class="mono">2.3s</td>
+              <td>2026-05-08 14:28</td>
+              <td><span class="link">查看详情</span></td>
+            </tr>
+            <tr>
+              <td colspan="9">
+                <div class="flow-detail">
+                  <div class="flow-detail-header">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    流程回放 - 5个步骤
+                  </div>
+                  <div class="flow-steps">
+                    <div class="flow-step">
+                      <div class="flow-step-header">
+                        <span class="flow-step-name">① 需求理解</span>
+                        <span class="flow-step-duration">200ms</span>
+                      </div>
+                      <span class="badge badge-success" style="font-size:10px">成功</span>
+                      <div class="flow-step-content">输入："创建门诊收入月度汇总指标" → 输出：{指标对象:门诊收入, 时间粒度:月度, 统计维度:科室}</div>
+                    </div>
+                    <div class="flow-step">
+                      <div class="flow-step-header">
+                        <span class="flow-step-name">② 指标设计</span>
+                        <span class="flow-step-duration">350ms</span>
+                      </div>
+                      <span class="badge badge-success" style="font-size:10px">成功</span>
+                      <div class="flow-step-content">生成定义：指标名称=门诊收入月度汇总, 编码=MZ_SR_MONTH_SUM, 类型=衍生指标</div>
+                    </div>
+                    <div class="flow-step">
+                      <div class="flow-step-header">
+                        <span class="flow-step-name">③ SQL生成</span>
+                        <span class="flow-step-duration">150ms</span>
+                      </div>
+                      <span class="badge badge-success" style="font-size:10px">成功</span>
+                      <div class="flow-step-content">SELECT dept_name, SUM(revenue) FROM outpatient_billing WHERE billing_date BETWEEN...</div>
+                    </div>
+                    <div class="flow-step">
+                      <div class="flow-step-header">
+                        <span class="flow-step-name">④ 验证测试</span>
+                        <span class="flow-step-duration">1.2s</span>
+                      </div>
+                      <span class="badge badge-success" style="font-size:10px">成功</span>
+                      <div class="flow-step-content">测试数据：100行，数据完整性✓，合理性✓，趋势符合业务规律✓</div>
+                    </div>
+                    <div class="flow-step">
+                      <div class="flow-step-header">
+                        <span class="flow-step-name">⑤ 发布上线</span>
+                        <span class="flow-step-duration">400ms</span>
+                      </div>
+                      <span class="badge badge-success" style="font-size:10px">成功</span>
+                      <div class="flow-step-content">指标ID=METRIC-892已创建，状态=待核对，建议人工审核后发布</div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="mono">LOG-1245</td>
+              <td>王财务</td>
+              <td><span class="op-type">AI报告生成</span></td>
+              <td>"生成4月运营月报"</td>
+              <td class="mono">FLOW-2845</td>
+              <td><span class="badge badge-success">成功</span></td>
+              <td class="mono">28s</td>
+              <td>2026-05-08 14:20</td>
+              <td><span class="link">查看详情</span></td>
+            </tr>
+            <tr>
+              <td class="mono">LOG-1244</td>
+              <td>赵院长</td>
+              <td><span class="op-type">AI预警</span></td>
+              <td>"药占比超标预警"</td>
+              <td class="mono">-</td>
+              <td><span class="badge badge-warning">触发预警</span></td>
+              <td class="mono">120ms</td>
+              <td>2026-05-08 14:15</td>
+              <td><span class="link">查看详情</span></td>
+            </tr>
+            <tr>
+              <td class="mono">LOG-1243</td>
+              <td>孙医生</td>
+              <td><span class="op-type">AI问答</span></td>
+              <td>"心内科本月目标达成"</td>
+              <td class="mono">FLOW-2843</td>
+              <td><span class="badge badge-error">失败</span></td>
+              <td class="mono">-</td>
+              <td>2026-05-08 14:10</td>
+              <td><span class="link">查看详情</span></td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        <div class="pagination">
+          <div class="pagination-info">共 1,247 条记录</div>
+          <div class="pagination-pages">
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">...</button>
+            <button class="page-btn">125</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

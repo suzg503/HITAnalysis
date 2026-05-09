@@ -3,349 +3,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HITAnalysis - 保存报表对话框</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;510;590;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <title>HITAnalysis - 保存报表</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;510;590;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-marketing: #08090a;
-      --bg-panel: #0f1011;
-      --bg-surface: #191a1b;
-      --bg-elevated: #28282c;
+      --bg-marketing: #08090a; --bg-panel: #0f1011; --bg-surface: #191a1b; --bg-elevated: #28282c;
       --bg-input: rgba(255,255,255,0.02);
-      
-      --text-primary: #f7f8f8;
-      --text-secondary: #d0d6e0;
-      --text-tertiary: #8a8f98;
-      --text-muted: #62666d;
-      
-      --brand-primary: #3B82F6;
-      --brand-hover: #2563EB;
-      --brand-active: #1D4ED8;
-      --brand-subtle: rgba(59,130,246,0.15);
-      
-      --border-subtle: rgba(255,255,255,0.05);
-      --border-standard: rgba(255,255,255,0.08);
-      --border-strong: rgba(255,255,255,0.12);
-      --border-brand: rgba(59,130,246,0.3);
-      
-      --overlay-bg: rgba(0,0,0,0.85);
+      --text-primary: #f7f8f8; --text-secondary: #d0d6e0; --text-tertiary: #8a8f98; --text-muted: #62666d;
+      --brand-primary: #3B82F6; --brand-hover: #2563EB; --brand-subtle: rgba(59,130,246,0.15);
+      --success: #10B981; --warning: #F59E0B; --error: #EF4444;
+      --border-subtle: rgba(255,255,255,0.05); --border-standard: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.12);
+      --ai-gradient-start: #3B82F6; --ai-gradient-end: #8B5CF6;
     }
-    
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    
     body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      font-weight: 400;
-      background: var(--bg-marketing);
-      color: var(--text-secondary);
-      min-height: 100vh;
-      line-height: 1.5;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: rgba(0,0,0,0.6); display: flex;
+      align-items: center; justify-content: center;
+      min-height: 100vh; color: var(--text-secondary);
     }
-    
-    /* Modal Overlay */
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: var(--overlay-bg);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000;
-    }
-    
-    /* Modal Container */
-    .modal-container {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-standard);
-      border-radius: 12px;
-      width: 480px;
-      max-width: 90vw;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      animation: modalIn 0.2s ease;
-    }
-    
-    @keyframes modalIn {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* Modal Header */
-    .modal-header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--border-subtle);
-    }
-    
-    .modal-title {
-      font-size: 20px; font-weight: 590; color: var(--text-primary);
-    }
-    
-    .modal-close {
-      width: 32px; height: 32px;
-      background: var(--bg-input);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all 0.2s;
-    }
-    
-    .modal-close:hover { background: rgba(255,255,255,0.04); }
-    .modal-close svg { width: 16px; height: 16px; color: var(--text-tertiary); }
-    
-    /* Modal Body */
-    .modal-body {
-      padding: 24px;
-      display: flex; flex-direction: column; gap: 20px;
-    }
-    
-    /* Form Groups */
-    .form-group {
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    
-    .form-label {
-      font-size: 13px; font-weight: 510; color: var(--text-tertiary);
-      display: flex; align-items: center; gap: 6px;
-    }
-    
-    .form-label .required {
-      color: var(--brand-primary);
-    }
-    
-    .form-input {
-      width: 100%;
-      padding: 12px 14px;
-      background: var(--bg-input);
-      border: 1px solid var(--border-standard);
-      border-radius: 6px;
-      color: var(--text-primary);
-      font-size: 15px; font-family: inherit;
-      transition: all 0.2s ease;
-    }
-    
-    .form-input:focus {
-      outline: none;
-      border-color: var(--border-brand);
-      background: rgba(255,255,255,0.04);
-    }
-    
-    .form-input::placeholder { color: var(--text-muted); }
-    
-    .form-hint {
-      font-size: 12px; color: var(--text-muted);
-    }
-    
-    /* Folder Selector */
-    .folder-selector {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 14px;
-      background: var(--bg-input);
-      border: 1px solid var(--border-standard);
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .folder-selector:hover {
-      border-color: var(--border-brand);
-      background: rgba(255,255,255,0.04);
-    }
-    
-    .folder-current {
-      display: flex; align-items: center; gap: 8px;
-      color: var(--text-secondary); font-size: 15px;
-    }
-    
-    .folder-dropdown-icon svg {
-      width: 16px; height: 16px; color: var(--text-tertiary);
-    }
-    
-    /* Visibility Options */
-    .visibility-options {
-      display: flex; gap: 12px;
-    }
-    
-    .visibility-option {
-      flex: 1;
-      padding: 16px;
-      background: var(--bg-input);
-      border: 1px solid var(--border-standard);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    
-    .visibility-option:hover {
-      border-color: var(--border-strong);
-      background: rgba(255,255,255,0.04);
-    }
-    
-    .visibility-option.selected {
-      border-color: var(--border-brand);
-      background: var(--brand-subtle);
-    }
-    
-    .visibility-icon {
-      font-size: 20px;
-    }
-    
-    .visibility-label {
-      font-size: 14px; font-weight: 510; color: var(--text-secondary);
-    }
-    
-    .visibility-desc {
-      font-size: 12px; color: var(--text-muted);
-    }
-    
-    /* Modal Footer */
-    .modal-footer {
-      display: flex; justify-content: flex-end; gap: 12px;
-      padding: 20px 24px;
-      border-top: 1px solid var(--border-subtle);
-    }
-    
-    .btn-secondary {
-      padding: 10px 20px;
-      background: var(--bg-input);
-      border: 1px solid var(--border-standard);
-      border-radius: 6px;
-      color: var(--text-secondary);
-      font-size: 14px; font-weight: 510;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .btn-secondary:hover {
-      background: rgba(255,255,255,0.04);
-      color: var(--text-primary);
-    }
-    
-    .btn-primary {
-      padding: 10px 20px;
-      background: var(--brand-primary);
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-size: 14px; font-weight: 510;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .btn-primary:hover { background: var(--brand-hover); }
-    
-    /* Preview Card (mini preview of what's being saved) */
-    .preview-mini {
+    .dialog {
       background: var(--bg-panel);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 12px 16px;
+      border: 1px solid var(--border-standard);
+      border-radius: 16px;
+      padding: 32px;
+      width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     }
-    
-    .preview-mini-header {
-      font-size: 12px; color: var(--text-muted);
-      margin-bottom: 8px;
+    .dialog-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px;
     }
-    
-    .preview-mini-content {
-      display: flex; gap: 16px;
-      font-size: 13px;
-    }
-    
-    .preview-mini-item {
-      display: flex; gap: 4px;
-    }
-    
-    .preview-mini-label { color: var(--text-tertiary); }
-    .preview-mini-value { color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; }
+    .dialog-title { font-size: 18px; font-weight: 590; color: var(--text-primary); }
+    .dialog-close { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; cursor: pointer; color: var(--text-tertiary); }
+    .dialog-close:hover { background: var(--bg-input); color: var(--text-secondary); }
+    .field { margin-bottom: 20px; }
+    .field-label { font-size: 13px; font-weight: 510; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .field-input { width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-standard); border-radius: 8px; color: var(--text-primary); font-size: 14px; font-family: 'Inter', sans-serif; }
+    .field-input:focus { outline: none; border-color: var(--brand-primary); }
+    .field-input::placeholder { color: var(--text-muted); }
+    .field-select { width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-standard); border-radius: 8px; color: var(--text-secondary); font-size: 14px; font-family: 'Inter', sans-serif; cursor: pointer; }
+    .field-textarea { width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border-standard); border-radius: 8px; color: var(--text-primary); font-size: 14px; font-family: 'Inter', sans-serif; resize: vertical; min-height: 80px; }
+    .field-textarea:focus { outline: none; border-color: var(--brand-primary); }
+    .radio-group { display: flex; gap: 16px; }
+    .radio-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--text-secondary); }
+    .radio-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-strong); display: flex; align-items: center; justify-content: center; }
+    .radio-dot.active { border-color: var(--brand-primary); }
+    .radio-dot.active::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--brand-primary); }
+    .checkbox-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--text-secondary); }
+    .checkbox-box { width: 18px; height: 18px; border: 2px solid var(--border-strong); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+    .checkbox-box.active { border-color: var(--brand-primary); background: var(--brand-primary); }
+    .checkbox-box.active::after { content: '✓'; color: white; font-size: 12px; font-weight: 700; }
+    .dialog-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-standard); }
+    .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 510; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: var(--brand-primary); border: none; color: white; }
+    .btn-primary:hover { background: var(--brand-hover); }
+    .btn-secondary { background: var(--bg-input); border: 1px solid var(--border-standard); color: var(--text-secondary); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+    .demo-tag { position: fixed; bottom: 16px; right: 16px; padding: 6px 12px; background: var(--bg-elevated); border: 1px solid var(--border-standard); border-radius: 6px; font-size: 11px; color: var(--text-muted); z-index: 100; }
+    .state-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; font-size: 10px; font-weight: 510; border-radius: 9999px; margin-bottom: 16px; }
+    .state-badge.info { background: var(--brand-subtle); color: var(--brand-primary); }
   </style>
 </head>
 <body>
-  <div class="modal-overlay">
-    <div class="modal-container">
-      <!-- Modal Header -->
-      <div class="modal-header">
-        <h2 class="modal-title">保存报表</h2>
-        <div class="modal-close">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </div>
+  <div class="dialog">
+    <div class="dialog-header">
+      <div>
+        <span class="state-badge info">💾 保存</span>
+        <div class="dialog-title">保存报表</div>
       </div>
-      
-      <!-- Modal Body -->
-      <div class="modal-body">
-        <!-- Mini Preview -->
-        <div class="preview-mini">
-          <div class="preview-mini-header">正在保存的报表预览</div>
-          <div class="preview-mini-content">
-            <div class="preview-mini-item">
-              <span class="preview-mini-label">指标:</span>
-              <span class="preview-mini-value">抗生素使用率</span>
-            </div>
-            <div class="preview-mini-item">
-              <span class="preview-mini-label">图表:</span>
-              <span class="preview-mini-value">表格</span>
-            </div>
-            <div class="preview-mini-item">
-              <span class="preview-mini-label">数据行:</span>
-              <span class="preview-mini-value">5</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Report Name -->
-        <div class="form-group">
-          <label class="form-label">
-            报表名称 <span class="required">*</span>
-          </label>
-          <input type="text" class="form-input" placeholder="AI 生成的建议名称" value="心内科抗生素使用率月报">
-          <div class="form-hint">建议使用有意义的名称，便于后续查找</div>
-        </div>
-        
-        <!-- Folder Selection -->
-        <div class="form-group">
-          <label class="form-label">选择文件夹</label>
-          <div class="folder-selector">
-            <div class="folder-current">
-              <span>📁</span>
-              <span>日常监测</span>
-            </div>
-            <div class="folder-dropdown-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 9l6 6 6-6"/>
-              </svg>
-            </div>
-          </div>
-          <div class="form-hint">可选择已有文件夹或新建</div>
-        </div>
-        
-        <!-- Visibility -->
-        <div class="form-group">
-          <label class="form-label">设置可见性</label>
-          <div class="visibility-options">
-            <div class="visibility-option selected">
-              <div class="visibility-icon">🔒</div>
-              <div class="visibility-label">私有</div>
-              <div class="visibility-desc">仅自己可见</div>
-            </div>
-            <div class="visibility-option">
-              <div class="visibility-icon">👥</div>
-              <div class="visibility-label">科室共享</div>
-              <div class="visibility-desc">科室成员可见</div>
-            </div>
-            <div class="visibility-option">
-              <div class="visibility-icon">🏥</div>
-              <div class="visibility-label">院区共享</div>
-              <div class="visibility-desc">全院区可见</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Modal Footer -->
-      <div class="modal-footer">
-        <button class="btn-secondary">取消</button>
-        <button class="btn-primary">保存</button>
+      <div class="dialog-close">✕</div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">📄 报表名称</div>
+      <input class="field-input" value="门诊运营日报 - 2026年Q2" placeholder="输入报表名称">
+    </div>
+
+    <div class="field">
+      <div class="field-label">📁 保存位置</div>
+      <select class="field-select">
+        <option>我的报表</option>
+        <option>日常监测</option>
+        <option>月度汇报</option>
+        <option>未分类</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <div class="field-label">🔁 自动刷新</div>
+      <div class="radio-group">
+        <label class="radio-item">
+          <div class="radio-dot active"></div>
+          每日
+        </label>
+        <label class="radio-item">
+          <div class="radio-dot"></div>
+          每周
+        </label>
+        <label class="radio-item">
+          <div class="radio-dot"></div>
+          手动
+        </label>
       </div>
     </div>
+
+    <div class="field">
+      <div class="field-label">📝 备注描述</div>
+      <textarea class="field-textarea" placeholder="可选：添加备注说明..."></textarea>
+    </div>
+
+    <div class="field">
+      <label class="checkbox-item">
+        <div class="checkbox-box active"></div>
+        包含AI洞察结论
+      </label>
+      <label class="checkbox-item" style="margin-top:8px;">
+        <div class="checkbox-box"></div>
+        设为默认首页
+      </label>
+    </div>
+
+    <div class="dialog-footer">
+      <button class="btn btn-secondary">取消</button>
+      <button class="btn btn-primary">💾 保存报表</button>
+    </div>
   </div>
+  <div class="demo-tag">🆕 HLD v2.0 - 保存报表对话框</div>
 </body>
 </html>

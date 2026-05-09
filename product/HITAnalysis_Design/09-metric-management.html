@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HITAnalysis - 指标库管理</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;510;590;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-marketing: #08090a;
+      --bg-panel: #0f1011;
+      --bg-surface: #191a1b;
+      --bg-elevated: #28282c;
+      --bg-input: rgba(255,255,255,0.02);
+      
+      --text-primary: #f7f8f8;
+      --text-secondary: #d0d6e0;
+      --text-tertiary: #8a8f98;
+      --text-muted: #62666d;
+      
+      --brand-primary: #3B82F6;
+      --brand-hover: #2563EB;
+      --brand-subtle: rgba(59,130,246,0.15);
+      
+      --success: #10B981;
+      --warning: #F59E0B;
+      --error: #EF4444;
+      
+      --border-subtle: rgba(255,255,255,0.05);
+      --border-standard: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.12);
+      
+      --ai-gradient-start: #3B82F6;
+      --ai-gradient-end: #8B5CF6;
+      --ai-glow: 0px 0px 20px rgba(59,130,246,0.3);
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-marketing);
+      color: var(--text-secondary);
+      min-height: 100vh;
+      display: flex;
+    }
+    
+    /* Sidebar - Tree Panel */
+    .tree-panel {
+      width: 260px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-standard);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .tree-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .tree-title {
+      font-size: 14px;
+      font-weight: 510;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    
+    .tree-search {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-standard);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 13px;
+    }
+    
+    .tree-search:focus {
+      outline: none;
+      border-color: var(--brand-primary);
+    }
+    
+    .tree-search::placeholder {
+      color: var(--text-muted);
+    }
+    
+    .tree-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    
+    .tree-node {
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-tertiary);
+      transition: all 0.15s;
+      margin-bottom: 2px;
+    }
+    
+    .tree-node:hover {
+      background: var(--bg-input);
+      color: var(--text-secondary);
+    }
+    
+    .tree-node.active {
+      background: var(--brand-subtle);
+      color: var(--brand-primary);
+    }
+    
+    .tree-node-icon {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .tree-node-text {
+      font-size: 13px;
+    }
+    
+    .tree-node-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-elevated);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    
+    .tree-children {
+      padding-left: 20px;
+    }
+    
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Top Bar */
+    .topbar {
+      height: 56px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-standard);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 510;
+      color: var(--text-primary);
+    }
+    
+    .topbar-actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 510;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    
+    .btn-secondary {
+      background: var(--bg-input);
+      border: 1px solid var(--border-standard);
+      color: var(--text-secondary);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.04);
+      color: var(--text-primary);
+    }
+    
+    .btn-primary {
+      background: var(--brand-primary);
+      border: none;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--brand-hover);
+    }
+    
+    .btn-ai {
+      background: linear-gradient(135deg, var(--ai-gradient-start), var(--ai-gradient-end));
+      border: none;
+      color: white;
+      box-shadow: var(--ai-glow);
+    }
+    
+    .btn-ai:hover {
+      transform: translateY(-1px);
+      box-shadow: 0px 0px 30px rgba(59,130,246,0.4);
+    }
+    
+    .btn svg {
+      width: 14px;
+      height: 14px;
+    }
+    
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    
+    /* Filter Section */
+    .filter-section {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-standard);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .filter-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    
+    .filter-select {
+      padding: 8px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-standard);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 13px;
+      min-width: 140px;
+      cursor: pointer;
+    }
+    
+    .filter-select:focus {
+      outline: none;
+      border-color: var(--brand-primary);
+    }
+    
+    .filter-input {
+      padding: 8px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-standard);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 13px;
+      min-width: 200px;
+    }
+    
+    .filter-input:focus {
+      outline: none;
+      border-color: var(--brand-primary);
+    }
+    
+    .filter-input::placeholder {
+      color: var(--text-muted);
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    
+    /* Table Container */
+    .table-container {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-standard);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .table th {
+      background: rgba(255,255,255,0.03);
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 510;
+      color: var(--text-tertiary);
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .table td {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .table tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+    
+    .checkbox-cell {
+      width: 40px;
+    }
+    
+    .checkbox {
+      width: 16px;
+      height: 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-standard);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .checkbox.checked {
+      background: var(--brand-primary);
+      border-color: var(--brand-primary);
+    }
+    
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Status Badge */
+    .badge {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 510;
+    }
+    
+    .badge-success {
+      background: rgba(16,185,129,0.15);
+      color: var(--success);
+    }
+    
+    .badge-warning {
+      background: rgba(245,158,11,0.15);
+      color: var(--warning);
+    }
+    
+    .badge-neutral {
+      background: var(--bg-elevated);
+      color: var(--text-tertiary);
+    }
+    
+    /* Type Badge */
+    .type-badge {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-standard);
+    }
+    
+    /* Action Menu */
+    .action-menu {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .action-btn {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .action-btn:hover {
+      background: var(--bg-input);
+      color: var(--text-secondary);
+    }
+    
+    .action-btn-edit:hover {
+      color: var(--brand-primary);
+    }
+    
+    .action-btn-delete:hover {
+      color: var(--error);
+    }
+    
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    
+    .pagination-info {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    
+    .pagination-pages {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .page-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text-tertiary);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .page-btn:hover {
+      background: var(--bg-input);
+      color: var(--text-secondary);
+    }
+    
+    .page-btn.active {
+      background: var(--brand-subtle);
+      color: var(--brand-primary);
+    }
+    
+    /* Demo Badge */
+    .demo-badge {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      padding: 6px 12px;
+      background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 6px;
+      font-size: 11px;
+      color: #8B5CF6;
+      z-index: 100;
+    }
+    
+    /* Domain Colors */
+    .domain-medical { color: #3B82F6; }
+    .domain-finance { color: #10B981; }
+    .domain-quality { color: #F59E0B; }
+    .domain-personnel { color: #8B5CF6; }
+  </style>
+</head>
+<body>
+  <div class="demo-badge">🆕 HLD v2.0 新增模块 - 指标库管理</div>
+  
+  <!-- Tree Panel (Left) -->
+  <div class="tree-panel">
+    <div class="tree-header">
+      <div class="tree-title">📂 业务域分类</div>
+      <input type="text" class="tree-search" placeholder="搜索业务域...">
+    </div>
+    <div class="tree-content">
+      <div class="tree-node active">
+        <svg class="tree-node-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span class="tree-node-text">全部指标</span>
+        <span class="tree-node-count">156</span>
+      </div>
+      
+      <div class="tree-node">
+        <svg class="tree-node-icon domain-medical" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        <span class="tree-node-text">医疗业务域</span>
+        <span class="tree-node-count">68</span>
+      </div>
+      <div class="tree-children">
+        <div class="tree-node">
+          <span class="tree-node-text">门诊指标</span>
+          <span class="tree-node-count">24</span>
+        </div>
+        <div class="tree-node">
+          <span class="tree-node-text">住院指标</span>
+          <span class="tree-node-count">28</span>
+        </div>
+        <div class="tree-node">
+          <span class="tree-node-text">药品指标</span>
+          <span class="tree-node-count">16</span>
+        </div>
+      </div>
+      
+      <div class="tree-node">
+        <svg class="tree-node-icon domain-finance" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        <span class="tree-node-text">财务域</span>
+        <span class="tree-node-count">32</span>
+      </div>
+      
+      <div class="tree-node">
+        <svg class="tree-node-icon domain-quality" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span class="tree-node-text">质量域</span>
+        <span class="tree-node-count">24</span>
+      </div>
+      
+      <div class="tree-node">
+        <svg class="tree-node-icon domain-personnel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span class="tree-node-text">人力资源域</span>
+        <span class="tree-node-count">18</span>
+      </div>
+      
+      <div class="tree-node">
+        <svg class="tree-node-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+        </svg>
+        <span class="tree-node-text">采购域</span>
+        <span class="tree-node-count">14</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title">📊 指标库管理</div>
+      <div class="topbar-actions">
+        <button class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          导入
+        </button>
+        <button class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          导出
+        </button>
+        <button class="btn btn-ai">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          AI创建指标
+        </button>
+      </div>
+    </div>
+    
+    <div class="content-area">
+      <!-- Filters -->
+      <div class="filter-section">
+        <div class="filter-group">
+          <label class="filter-label">指标名称</label>
+          <input type="text" class="filter-input" placeholder="搜索指标名称...">
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">指标分类</label>
+          <select class="filter-select">
+            <option>全部</option>
+            <option>基础指标</option>
+            <option>业务指标</option>
+            <option>衍生指标</option>
+            <option>技术指标</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">指标类型</label>
+          <select class="filter-select">
+            <option>全部</option>
+            <option>原子指标</option>
+            <option>衍生指标</option>
+            <option>复合指标</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">状态</label>
+          <select class="filter-select">
+            <option>全部</option>
+            <option>已发布</option>
+            <option>草稿</option>
+            <option>已下线</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          新增指标
+        </button>
+        <button class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          批量删除
+        </button>
+      </div>
+      
+      <!-- Table -->
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="checkbox-cell"><div class="checkbox"></div></th>
+              <th>序号</th>
+              <th>指标名称</th>
+              <th>指标编码</th>
+              <th>业务域</th>
+              <th>指标类型</th>
+              <th>数据类型</th>
+              <th>计量单位</th>
+              <th>状态</th>
+              <th>创建人</th>
+              <th>创建时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="checkbox-cell"><div class="checkbox"></div></td>
+              <td>1</td>
+              <td>门诊人次</td>
+              <td class="mono">MZ_RS</td>
+              <td>医疗业务域</td>
+              <td><span class="type-badge">原子指标</span></td>
+              <td>数值</td>
+              <td>人次</td>
+              <td><span class="badge badge-success">已发布</span></td>
+              <td>系统管理员</td>
+              <td>2026-05-01</td>
+              <td>
+                <div class="action-menu">
+                  <span class="action-btn action-btn-edit">编辑</span>
+                  <span class="action-btn">发布</span>
+                  <span class="action-btn action-btn-delete">删除</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><div class="checkbox"></div></td>
+              <td>2</td>
+              <td>住院收入</td>
+              <td class="mono">ZY_SR</td>
+              <td>医疗业务域</td>
+              <td><span class="type-badge">原子指标</span></td>
+              <td>数值</td>
+              <td>元</td>
+              <td><span class="badge badge-success">已发布</span></td>
+              <td>财务主任</td>
+              <td>2026-05-02</td>
+              <td>
+                <div class="action-menu">
+                  <span class="action-btn action-btn-edit">编辑</span>
+                  <span class="action-btn">下线</span>
+                  <span class="action-btn action-btn-delete">删除</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><div class="checkbox"></div></td>
+              <td>3</td>
+              <td>药占比</td>
+              <td class="mono">YZB</td>
+              <td>医疗业务域</td>
+              <td><span class="type-badge">衍生指标</span></td>
+              <td>数值</td>
+              <td>%</td>
+              <td><span class="badge badge-success">已发布</span></td>
+              <td>质控主任</td>
+              <td>2026-05-03</td>
+              <td>
+                <div class="action-menu">
+                  <span class="action-btn action-btn-edit">编辑</span>
+                  <span class="action-btn">发布</span>
+                  <span class="action-btn action-btn-delete">删除</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><div class="checkbox"></div></td>
+              <td>4</td>
+              <td>床位使用率</td>
+              <td class="mono">CW_SYL</td>
+              <td>医疗业务域</td>
+              <td><span class="type-badge">衍生指标</span></td>
+              <td>数值</td>
+              <td>%</td>
+              <td><span class="badge badge-success">已发布</span></td>
+              <td>运营主任</td>
+              <td>2026-05-04</td>
+              <td>
+                <div class="action-menu">
+                  <span class="action-btn action-btn-edit">编辑</span>
+                  <span class="action-btn">发布</span>
+                  <span class="action-btn action-btn-delete">删除</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><div class="checkbox"></div></td>
+              <td>5</td>
+              <td>平均住院日</td>
+              <td class="mono">PJ_ZYR</td>
+              <td>医疗业务域</td>
+              <td><span class="type-badge">衍生指标</span></td>
+              <td>数值</td>
+              <td>天</td>
+              <td><span class="badge badge-success">已发布</span></td>
+              <td>质控主任</td>
+              <td>2026-05-05</td>
+              <td>
+                <div class="action-menu">
+                  <span class="action-btn action-btn-edit">编辑</span>
+                  <span class="action-btn">发布</span>
+                  <span class="action-btn action-btn-delete">删除</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><div class="checkbox"></div></td>
+              <td>6</td>
+              <td>门诊收入月度汇总</td>
+              <td class="mono">MZ_SR_MONTH</td>
+              <td>医疗业务域</td>
+              <td><span class="type-badge">衍生指标</span></td>
+              <td>数值</td>
+              <td>元</td>
+              <td><span class="badge badge-warning">草稿</span></td>
+              <td>AI创建</td>
+              <td>2026-05-08</td>
+              <td>
+                <div class="action-menu">
+                  <span class="action-btn action-btn-edit">编辑</span>
+                  <span class="action-btn">发布</span>
+                  <span class="action-btn action-btn-delete">删除</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><div class="checkbox"></div></td>
+              <td>7</td>
+              <td>全院总收入</td>
+              <td class="mono">QY_ZSR</td>
+              <td>财务域</td>
+              <td><span class="type-badge">复合指标</span></td>
+              <td>数值</td>
+              <td>元</td>
+              <td><span class="badge badge-success">已发布</span></td>
+              <td>财务主任</td>
+              <td>2026-04-28</td>
+              <td>
+                <div class="action-menu">
+                  <span class="action-btn action-btn-edit">编辑</span>
+                  <span class="action-btn">下线</span>
+                  <span class="action-btn action-btn-delete">删除</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><div class="checkbox"></div></td>
+              <td>8</td>
+              <td>抗菌药物使用率</td>
+              <td class="mono">KJYW_SYL</td>
+              <td>质量域</td>
+              <td><span class="type-badge">衍生指标</span></td>
+              <td>数值</td>
+              <td>%</td>
+              <td><span class="badge badge-neutral">已下线</span></td>
+              <td>质控主任</td>
+              <td>2026-03-15</td>
+              <td>
+                <div class="action-menu">
+                  <span class="action-btn action-btn-edit">编辑</span>
+                  <span class="action-btn">重新发布</span>
+                  <span class="action-btn action-btn-delete">删除</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <!-- Pagination -->
+        <div class="pagination">
+          <div class="pagination-info">共 156 条指标</div>
+          <div class="pagination-pages">
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">...</button>
+            <button class="page-btn">16</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
