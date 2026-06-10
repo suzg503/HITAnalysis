@@ -1,0 +1,45 @@
+# Java/Spring Boot
+**/target/
+*.class
+*.jar
+*.war
+*.log
+*.ctxt
+.mtj.tmp/
+hs_err_pid*
+replay_pid*
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Node.js/Vue
+**/node_modules/
+**/dist/
+*.local
+.npm
+.eslintcache
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env files with secrets
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Logs
+logs/
+*.log
+
+# Claude AI directory (not needed in repo)
+.claude/
