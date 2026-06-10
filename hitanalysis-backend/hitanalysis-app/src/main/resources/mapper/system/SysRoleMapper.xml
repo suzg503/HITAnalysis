@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hitanalysis.system.mapper.SysRoleMapper">
+
+    <!-- Result Map for Role -->
+    <resultMap id="RoleResultMap" type="com.hitanalysis.system.entity.SysRole">
+        <id property="roleId" column="role_id"/>
+        <result property="roleName" column="role_name"/>
+        <result property="roleCode" column="role_code"/>
+        <result property="systemName" column="system_name"/>
+        <result property="remark" column="remark"/>
+        <result property="status" column="status"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <!-- Menus list -->
+        <collection property="menus" ofType="com.hitanalysis.system.entity.SysMenu">
+            <id property="menuId" column="menu_id"/>
+            <result property="menuName" column="menu_name"/>
+            <result property="menuCode" column="menu_code"/>
+        </collection>
+    </resultMap>
+
+    <!-- Select role by ID with menus -->
+    <select id="selectByIdWithMenus" resultMap="RoleResultMap">
+        SELECT r.*, m.menu_id, m.menu_name, m.menu_code
+        FROM sys_role r
+        LEFT JOIN sys_role_menu rm ON r.role_id = rm.role_id
+        LEFT JOIN sys_menu m ON rm.menu_id = m.menu_id AND m.is_deleted = 0
+        WHERE r.role_id = #{roleId}
+        AND r.is_deleted = 0
+    </select>
+
+    <!-- Select all roles -->
+    <select id="selectRoleList" resultType="com.hitanalysis.system.entity.SysRole">
+        SELECT *
+        FROM sys_role
+        WHERE is_deleted = 0
+        <if test="roleName != null and roleName != ''">
+            AND role_name LIKE CONCAT('%', #{roleName}, '%')
+        </if>
+        <if test="roleCode != null and roleCode != ''">
+            AND role_code LIKE CONCAT('%', #{roleCode}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- Insert role -->
+    <insert id="insertRole" useGeneratedKeys="true" keyProperty="roleId">
+        INSERT INTO sys_role (
+            role_name, role_code, system_name, remark, status, created_by
+        ) VALUES (
+            #{roleName}, #{roleCode}, #{systemName}, #{remark}, #{status}, #{createdBy}
+        )
+    </insert>
+
+    <!-- Update role -->
+    <update id="updateRole">
+        UPDATE sys_role
+        SET
+            role_name = #{roleName},
+            role_code = #{roleCode},
+            system_name = #{systemName},
+            remark = #{remark},
+            status = #{status},
+            updated_by = #{updatedBy},
+            update_time = NOW()
+        WHERE role_id = #{roleId}
+        AND is_deleted = 0
+    </update>
+
+    <!-- Soft delete role -->
+    <update id="softDeleteById">
+        UPDATE sys_role
+        SET is_deleted = 1,
+            deleted_at = NOW(),
+            updated_by = #{updatedBy},
+            update_time = NOW()
+        WHERE role_id = #{roleId}
+    </update>
+
+    <!-- Check role code exists -->
+    <select id="checkRoleCodeExists" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM sys_role
+        WHERE role_code = #{roleCode}
+        AND is_deleted = 0
+        <if test="roleId != null">
+            AND role_id != #{roleId}
+        </if>
+    </select>
+
+</mapper>

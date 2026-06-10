@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hitanalysis.system.mapper.SysUserMapper">
+
+    <!-- Result Map for User with Role Info -->
+    <resultMap id="UserWithRoleResultMap" type="com.hitanalysis.system.entity.SysUser">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="passwordHash" column="password_hash"/>
+        <result property="realName" column="real_name"/>
+        <result property="roleId" column="role_id"/>
+        <result property="hospitalId" column="hospital_id"/>
+        <result property="deptOption" column="dept_option"/>
+        <result property="status" column="status"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <!-- Extra fields from role table -->
+        <result property="roleName" column="role_name"/>
+        <result property="roleCode" column="role_code"/>
+    </resultMap>
+
+    <!-- Select user by username with role info -->
+    <select id="selectByUsernameWithRole" resultMap="UserWithRoleResultMap">
+        SELECT u.*, r.role_name, r.role_code
+        FROM sys_user u
+        LEFT JOIN sys_role r ON u.role_id = r.role_id
+        WHERE u.username = #{username}
+        AND u.is_deleted = 0
+        AND u.status = 1
+    </select>
+
+    <!-- Select user department codes -->
+    <select id="selectUserDeptCodes" resultType="java.lang.String">
+        SELECT dept_code
+        FROM sys_user_dept
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </select>
+
+    <!-- Select user hospital IDs -->
+    <select id="selectUserHospitalIds" resultType="java.lang.Long">
+        SELECT hospital_id
+        FROM sys_user_hospital
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </select>
+
+    <!-- Select users with pagination and filters -->
+    <select id="selectUserList" resultMap="UserWithRoleResultMap">
+        SELECT u.*, r.role_name, r.role_code
+        FROM sys_user u
+        LEFT JOIN sys_role r ON u.role_id = r.role_id
+        WHERE u.is_deleted = 0
+        <if test="username != null and username != ''">
+            AND u.username LIKE CONCAT('%', #{username}, '%')
+        </if>
+        <if test="status != null">
+            AND u.status = #{status}
+        </if>
+        <if test="roleId != null">
+            AND u.role_id = #{roleId}
+        </if>
+        <if test="hospitalId != null">
+            AND u.hospital_id = #{hospitalId}
+        </if>
+        ORDER BY u.create_time DESC
+    </select>
+
+    <!-- Update user password -->
+    <update id="updatePassword">
+        UPDATE sys_user
+        SET password_hash = #{passwordHash},
+            updated_by = #{updatedBy},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </update>
+
+    <!-- Update user status -->
+    <update id="updateStatus">
+        UPDATE sys_user
+        SET status = #{status},
+            updated_by = #{updatedBy},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+        AND is_deleted = 0
+    </update>
+
+    <!-- Soft delete user -->
+    <update id="softDeleteById">
+        UPDATE sys_user
+        SET is_deleted = 1,
+            deleted_at = NOW(),
+            updated_by = #{updatedBy},
+            update_time = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+</mapper>

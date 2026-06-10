@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.hitanalysis</groupId>
+        <artifactId>hitanalysis-backend</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>hitanalysis-ai</artifactId>
+    <packaging>jar</packaging>
+
+    <name>HITAnalysis AI</name>
+    <description>Text-to-Config, RAG, Insight Generation</description>
+
+    <dependencies>
+        <!-- Common Module -->
+        <dependency>
+            <groupId>com.hitanalysis</groupId>
+            <artifactId>hitanalysis-common</artifactId>
+        </dependency>
+
+        <!-- System Module (for permission check) -->
+        <dependency>
+            <groupId>com.hitanalysis</groupId>
+            <artifactId>hitanalysis-system</artifactId>
+        </dependency>
+
+        <!-- Metadata Module (for indicator/dimension matching) -->
+        <dependency>
+            <groupId>com.hitanalysis</groupId>
+            <artifactId>hitanalysis-metadata</artifactId>
+        </dependency>
+
+        <!-- Report Module (for report generation) -->
+        <dependency>
+            <groupId>com.hitanalysis</groupId>
+            <artifactId>hitanalysis-report</artifactId>
+        </dependency>
+
+        <!-- MyBatis Plus -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+        </dependency>
+
+        <!-- Redisson -->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- LangChain4j -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-core</artifactId>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- MapStruct -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
